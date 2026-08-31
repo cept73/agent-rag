@@ -1,21 +1,21 @@
 # Project RAG API
 
-## Структура
+## Structure
 
 ```text
 app/
-├── main.py    # запуск сервера и CLI-импорт
-├── api.py     # REST API и авторизация
-├── db.py      # SQLite и CRUD материалов
-├── rag.py     # RAG-поиск по слоту
-└── schemas.py # модели запросов
+├── main.py    # server entry point and CLI import
+├── api.py     # REST API and authentication
+├── db.py      # SQLite and material CRUD
+├── rag.py     # slot-based RAG search
+└── schemas.py # request models
 ```
 
-Сервис хранит материалы в SQLite и разделяет их по слотам (`slot`). RAG-поиск использует только материалы выбранного слота.
+The service stores materials in SQLite and separates them by `slot`. RAG search uses only the materials from the selected slot.
 
-## Настройка
+## Configuration
 
-В `.env`:
+In `.env`:
 
 ```env
 GROQ_API_KEY=your_groq_key
@@ -23,108 +23,103 @@ RAG_PORT=8000
 RAG_API_TOKEN=your_secret_token
 ```
 
-Запуск:
+Start the server:
 
 ```bash
 python3 main.py
 ```
 
-## Консольный импорт
+## CLI import
 
-Импорт всех текстовых UTF-8 файлов из папки, включая вложенные папки:
+Import all UTF-8 text files from a directory, including nested directories:
 
 ```bash
 python3 main.py import --folder ./materials --slot project-a
 ```
 
-Команда возвращает JSON со списками `imported` и `skipped`. Имя файла сохраняется относительно указанной папки.
+The command returns JSON with `imported` and `skipped` lists. File names are stored relative to the selected directory.
 
 ## API
 
-Для авторизации используйте заголовок:
+Use this header for authentication:
 
 ```http
 X-API-Token: your_secret_token
 ```
 
-или:
-
-```http
-Authorization: Bearer your_secret_token
-```
-
-### Добавить материал
+### Add a material
 
 ```bash
 curl -X POST http://localhost:8000/materials \
   -H "X-API-Token: your_secret_token" \
   -H "Content-Type: application/json" \
-  -d '{"slot":"project-a","name":"team.md","content":"Проектом руководит Елена."}'
+  -d '{"slot":"project-a","name":"team.md","content":"Elena leads the project."}'
 ```
 
-### Получить список материалов
+### List materials
 
 ```bash
 curl "http://localhost:8000/materials?slot=project-a" \
   -H "X-API-Token: your_secret_token"
 ```
 
-Без `slot` возвращаются материалы всех слотов. Содержимое материалов в списке не возвращается.
+Without `slot`, materials from all slots are returned. Material contents are not included in the list.
 
-### Удалить материал
+### Delete a material
 
 ```bash
 curl -X DELETE http://localhost:8000/materials/1 \
   -H "X-API-Token: your_secret_token"
 ```
 
-### Выполнить RAG-поиск
+### Run a RAG search
 
 ```bash
 curl -X POST http://localhost:8000/rag/search \
   -H "X-API-Token: your_secret_token" \
   -H "Content-Type: application/json" \
-  -d '{"slot":"project-a","params":["Кто руководит проектом?"]}'
+  -d '{"slot":"project-a","params":["Who leads the project?"]}'
 ```
 
-Один запрос:
+For one query:
 
 ```json
-{"success":true,"answer":"Елена."}
+{"success":true,"answer":"Elena."}
 ```
 
-Несколько запросов:
+For multiple queries:
 
 ```json
-{"success":true,"answers":["Елена.","В проекте 5 участников."]}
+{"success":true,"answers":["Elena.","There are 5 people in the project."]}
 ```
 
-### Проверка состояния
+### Health check
 
 ```bash
 curl http://localhost:8000/health
 ```
 
-База данных по умолчанию — `rag.db`. Путь можно изменить переменной `RAG_DB_PATH` в `.env`.
+The default database is `rag.db`. Change its location with `RAG_DB_PATH` in `.env`.
 
-## Запуск в фоне через nuhup
+## Run in the background with nohup
 
-Быстрый временный вариант:
+Quick temporary option:
+
 ```bash
 nohup python3 main.py > rag.log 2>&1 &
 ```
 
-Но для production лучше systemd: он автоматически перезапустит процесс после сбоя и запустит его после перезагрузки сервера.
+For production, use systemd so the process restarts after failures and starts automatically after a reboot.
 
-## Запуск в фоне через systemd
+## Run in the background with systemd
 
-Создайте unit-файл:
+Create the unit file:
 
 ```bash
 sudo mcedit /etc/systemd/system/agent-rag.service
 ```
 
-Содержимое файла:
+File contents:
 
 ```ini
 [Unit]
@@ -143,21 +138,21 @@ Environment=PYTHONUNBUFFERED=1
 WantedBy=multi-user.target
 ```
 
-Активируйте сервис:
+Enable the service:
 
 ```bash
 sudo systemctl daemon-reload
 sudo systemctl enable --now agent-rag
 ```
 
-Проверка состояния и логов:
+Check status and logs:
 
 ```bash
 sudo systemctl status agent-rag
 journalctl -u agent-rag -f
 ```
 
-Перезапуск после изменений:
+Restart after changes:
 
 ```bash
 sudo systemctl restart agent-rag
