@@ -29,7 +29,7 @@ def import_folder(folder, slot):
     )
 
 
-if __name__ == "__main__":
+def main():
     parser = argparse.ArgumentParser()
     parser.add_argument("command", nargs="?", choices=["import"])
     parser.add_argument("--folder")
@@ -50,3 +50,7 @@ if __name__ == "__main__":
             import_folder(args.folder, args.slot)
     else:
         uvicorn.run(app, host="0.0.0.0", port=int(os.getenv("RAG_PORT", "8000")))
+
+
+if __name__ == "__main__":
+    main()
