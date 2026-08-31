@@ -106,3 +106,59 @@ curl http://localhost:8000/health
 ```
 
 База данных по умолчанию — `rag.db`. Путь можно изменить переменной `RAG_DB_PATH` в `.env`.
+
+## Запуск в фоне через nuhup
+
+Быстрый временный вариант:
+```bash
+nohup python3 main.py > rag.log 2>&1 &
+```
+
+Но для production лучше systemd: он автоматически перезапустит процесс после сбоя и запустит его после перезагрузки сервера.
+
+## Запуск в фоне через systemd
+
+Создайте unit-файл:
+
+```bash
+sudo mcedit /etc/systemd/system/agent-rag.service
+```
+
+Содержимое файла:
+
+```ini
+[Unit]
+Description=Agent RAG API
+After=network.target
+
+[Service]
+User=cept
+WorkingDirectory=/var/www/agent-rag
+ExecStart=/home/cept/miniconda3/bin/python /var/www/agent-rag/main.py
+Restart=always
+RestartSec=5
+Environment=PYTHONUNBUFFERED=1
+
+[Install]
+WantedBy=multi-user.target
+```
+
+Активируйте сервис:
+
+```bash
+sudo systemctl daemon-reload
+sudo systemctl enable --now agent-rag
+```
+
+Проверка состояния и логов:
+
+```bash
+sudo systemctl status agent-rag
+journalctl -u agent-rag -f
+```
+
+Перезапуск после изменений:
+
+```bash
+sudo systemctl restart agent-rag
+```
