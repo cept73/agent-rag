@@ -1,0 +1,86 @@
+{
+  "info": {
+    "name": "Project RAG API",
+    "description": "Requests for the slot-based Project RAG service.",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "variable": [
+    {
+      "key": "base_url",
+      "value": "http://localhost:8000"
+    },
+    {
+      "key": "api_token",
+      "value": ""
+    },
+    {
+      "key": "slot",
+      "value": "project-a"
+    },
+    {
+      "key": "material_id",
+      "value": "1"
+    }
+  ],
+  "item": [
+    {
+      "name": "Health",
+      "request": {
+        "method": "GET",
+        "header": [],
+        "url": "{{base_url}}/health"
+      }
+    },
+    {
+      "name": "Materials",
+      "item": [
+        {
+          "name": "Add material",
+          "request": {
+            "method": "POST",
+            "header": [
+              {"key": "X-API-Token", "value": "{{api_token}}"},
+              {"key": "Content-Type", "value": "application/json"}
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"slot\": \"{{slot}}\",\n  \"name\": \"team.md\",\n  \"content\": \"Elena leads the project.\"\n}"
+            },
+            "url": "{{base_url}}/materials"
+          }
+        },
+        {
+          "name": "List materials",
+          "request": {
+            "method": "GET",
+            "header": [{"key": "X-API-Token", "value": "{{api_token}}"}],
+            "url": "{{base_url}}/materials?slot={{slot}}"
+          }
+        },
+        {
+          "name": "Delete material",
+          "request": {
+            "method": "DELETE",
+            "header": [{"key": "X-API-Token", "value": "{{api_token}}"}],
+            "url": "{{base_url}}/materials/{{material_id}}"
+          }
+        }
+      ]
+    },
+    {
+      "name": "RAG search",
+      "request": {
+        "method": "POST",
+        "header": [
+          {"key": "X-API-Token", "value": "{{api_token}}"},
+          {"key": "Content-Type", "value": "application/json"}
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"slot\": \"{{slot}}\",\n  \"params\": [\n    \"Who leads the project?\"\n  ]\n}"
+        },
+        "url": "{{base_url}}/rag/search"
+      }
+    }
+  ]
+}
