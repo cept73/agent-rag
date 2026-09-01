@@ -3,17 +3,31 @@
 ## Structure
 
 ```text
-app/
-├── main.py    # server entry point and CLI import
-├── api.py     # REST API and authentication
-├── db.py      # SQLite and material CRUD
-├── rag.py     # slot-based RAG search
-└── schemas.py # request models
+.
+├── main.py              # application launcher
+├── requirements.txt     # Python dependencies
+├── .env                 # local configuration (not committed)
+├── rag.db               # SQLite database (created/used at runtime)
+├── data/                # sample text files for CLI import
+├── Project-RAG.postman_collection.json # Postman API collection
+└── app/
+    ├── __init__.py
+    ├── main.py          # server entry point and CLI import
+    ├── api.py           # REST API and authentication
+    ├── db.py            # SQLite and material CRUD
+    ├── rag.py           # slot-based RAG search
+    └── schemas.py       # request models
 ```
 
 The service stores materials in SQLite and separates them by `slot`. RAG search uses only the materials from the selected slot.
 
 ## Configuration
+
+Install the Python dependencies:
+
+```bash
+python3 -m pip install -r requirements.txt
+```
 
 In `.env`:
 
@@ -98,11 +112,17 @@ For multiple queries:
 The following example adds two materials to the `project-a` slot, lists them,
 and searches the materials with a question.
 
+Set the token for the shell session first:
+
+```bash
+export RAG_API_TOKEN="your_secret_token"
+```
+
 #### 1. Add material 1
 
 ```bash
 curl -X POST http://localhost:8000/materials \
-  -H "X-API-Token: rag_7c9f4d2a8e1b6f3c0d5a9e7b2c4f8d1a" \
+  -H "X-API-Token: $RAG_API_TOKEN" \
   -H "Content-Type: application/json" \
   -d '{
     "slot": "project-a",
@@ -115,7 +135,7 @@ curl -X POST http://localhost:8000/materials \
 
 ```bash
 curl -X POST http://localhost:8000/materials \
-  -H "X-API-Token: rag_7c9f4d2a8e1b6f3c0d5a9e7b2c4f8d1a" \
+  -H "X-API-Token: $RAG_API_TOKEN" \
   -H "Content-Type: application/json" \
   -d '{
     "slot": "project-a",
@@ -128,7 +148,7 @@ curl -X POST http://localhost:8000/materials \
 
 ```bash
 curl "http://localhost:8000/materials?slot=project-a" \
-  -H "X-API-Token: rag_7c9f4d2a8e1b6f3c0d5a9e7b2c4f8d1a"
+  -H "X-API-Token: $RAG_API_TOKEN"
 ```
 
 Example response:
@@ -137,8 +157,8 @@ Example response:
 {
   "success": true,
   "materials": [
-    {"id": 1, "slot": "project-a", "name": "team.md"},
-    {"id": 2, "slot": "project-a", "name": "release.md"}
+    {"id": 1, "slot": "project-a", "name": "team.md", "created_at": "2026-09-01 12:00:00"},
+    {"id": 2, "slot": "project-a", "name": "release.md", "created_at": "2026-09-01 12:00:01"}
   ]
 }
 ```
@@ -147,7 +167,7 @@ Example response:
 
 ```bash
 curl -X POST http://localhost:8000/rag/search \
-  -H "X-API-Token: rag_7c9f4d2a8e1b6f3c0d5a9e7b2c4f8d1a" \
+  -H "X-API-Token: $RAG_API_TOKEN" \
   -H "Content-Type: application/json" \
   -d '{
     "slot": "project-a",
