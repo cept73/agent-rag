@@ -47,8 +47,4 @@ async def search(slot, queries):
     for query in queries:
         response = await agent.run(user_msg=query, max_iterations=3)
         answers.append(clean_answer(getattr(response, "response", response)))
-    return (
-        {"success": True, "answer": answers[0]}
-        if len(answers) == 1
-        else {"success": True, "answers": answers}
-    )
+    return {"success": True, "answers": answers}

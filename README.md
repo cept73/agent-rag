@@ -84,13 +84,81 @@ curl -X POST http://localhost:8000/rag/search \
 For one query:
 
 ```json
-{"success":true,"answer":"Elena."}
+{"success":true,"answers":["Elena."]}
 ```
 
 For multiple queries:
 
 ```json
 {"success":true,"answers":["Elena.","There are 5 people in the project."]}
+```
+
+### Example workflow
+
+The following example adds two materials to the `project-a` slot, lists them,
+and searches the materials with a question.
+
+#### 1. Add material 1
+
+```bash
+curl -X POST http://localhost:8000/materials \
+  -H "X-API-Token: rag_7c9f4d2a8e1b6f3c0d5a9e7b2c4f8d1a" \
+  -H "Content-Type: application/json" \
+  -d '{
+    "slot": "project-a",
+    "name": "team.md",
+    "content": "Elena leads the project. The team has five members."
+  }'
+```
+
+#### 2. Add material 2
+
+```bash
+curl -X POST http://localhost:8000/materials \
+  -H "X-API-Token: rag_7c9f4d2a8e1b6f3c0d5a9e7b2c4f8d1a" \
+  -H "Content-Type: application/json" \
+  -d '{
+    "slot": "project-a",
+    "name": "release.md",
+    "content": "The first release is planned for October 15, 2026."
+  }'
+```
+
+#### 3. List materials
+
+```bash
+curl "http://localhost:8000/materials?slot=project-a" \
+  -H "X-API-Token: rag_7c9f4d2a8e1b6f3c0d5a9e7b2c4f8d1a"
+```
+
+Example response:
+
+```json
+{
+  "success": true,
+  "materials": [
+    {"id": 1, "slot": "project-a", "name": "team.md"},
+    {"id": 2, "slot": "project-a", "name": "release.md"}
+  ]
+}
+```
+
+#### 4. Search by question
+
+```bash
+curl -X POST http://localhost:8000/rag/search \
+  -H "X-API-Token: rag_7c9f4d2a8e1b6f3c0d5a9e7b2c4f8d1a" \
+  -H "Content-Type: application/json" \
+  -d '{
+    "slot": "project-a",
+    "params": ["Who leads the project?"]
+  }'
+```
+
+Example response:
+
+```json
+{"success": true, "answers": ["Elena leads the project."]}
 ```
 
 ### Health check
