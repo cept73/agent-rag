@@ -1,4 +1,9 @@
 import argparse, json, os, uvicorn
+from pathlib import Path
+from dotenv import load_dotenv
+
+load_dotenv(Path(__file__).resolve().parent.parent / ".env")
+
 from .api import app
 from . import db
 
